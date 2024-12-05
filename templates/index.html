@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Загрузка файлов</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Загрузите файл (mp3, mp4, wav)</h2>
+
+        <!-- Форма для обычной загрузки файла -->
+        <form action="/uploadfile/" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".mp3, .mp4, .wav">
+            <button type="submit">Загрузить</button>
+        </form>
+
+        <!-- Область для drag-and-drop -->
+        <h2>Или перетащите файл сюда:</h2>
+        <div id="drop-area" class="drop-area">
+            Перетащите сюда файл
+        </div>
+
+        <!-- Предупреждение для неправильных файлов -->
+        <div id="warning-message" class="warning-message" style="display: none;">
+            Нельзя загружать файлы в этом формате! Пожалуйста, выберите файл .mp3, .mp4 или .wav.
+        </div>
+
+        <!-- Запись аудио -->
+        <h2>Записать аудио:</h2>
+        <button id="record-button">
+            <img src="/static/micro.jpg" alt="Микрофон" width="30" height="30">
+            Начать запись
+        </button>
+
+        <!-- Покажем длительность записи -->
+        <p id="timer">00:00</p>
+
+        <!-- Элемент для проигрывания записанного аудио -->
+        <audio id="audio-player" controls></audio>
+    </div>
+
+    <!-- Подключаем внешний JavaScript файл -->
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
