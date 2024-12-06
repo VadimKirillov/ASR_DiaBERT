@@ -30,18 +30,26 @@ async def read_root(request: Request):
 # Эндпоинт для загрузки файла
 @app.post("/uploadfile/")
 async def upload_file(file: UploadFile = File(...)):
-    # Сохраняем файл на сервере
-    file_location = os.path.join(UPLOAD_DIR, file.filename)
-    with open(file_location, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    try:
+        # Сохраняем файл на сервере
+        file_location = os.path.join(UPLOAD_DIR, file.filename)
+        with open(file_location, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-    # Использование внешнего API
-    external_api_url = "Внешний Апи"
-    with open(file_location, 'rb') as file_data:
-        response = requests.post(external_api_url, files={"file": file_data})
+        # Путь к сохраненному файлу
+        file_path = file_location
 
-    # Возвращаем результат обработки
-    if response.status_code == 200:
-        return {"status": "Файл обработан успешно", "data": response.json()}
-    else:
-        return {"status": "Ошибка обработки файла", "error": response.text}
+        # Использование внешнего API для отправки файла
+        external_api_url = "https://0954-193-41-143-66.ngrok-free.app/transcribe/"
+        with open(file_path, 'rb') as f:
+            # Отправляем файл на внешний API
+            files = {'file': f}
+            response = requests.post(external_api_url, files=files, verify=False)
+
+        # Возвращаем результат обработки
+        if response.status_code == 200:
+            return {"status": "Файл обработан успешно", "data": response.json()}
+        else:
+            return {"status": "Ошибка обработки файла", "error": response.text}
+    except Exception as e:
+        return {"status": "Ошибка загрузки", "error": str(e)}

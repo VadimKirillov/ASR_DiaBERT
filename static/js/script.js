@@ -1,53 +1,5 @@
 // static/js/script.js
 
-// Обработчик перетаскивания файлов
-const dropArea = document.getElementById("drop-area");
-const warningMessage = document.getElementById("warning-message");
-
-// Разрешенные форматы файлов
-const allowedFormats = ["audio/mp3", "audio/mp4", "audio/wav"];
-
-dropArea.addEventListener("dragover", function(event) {
-    event.preventDefault();
-    dropArea.style.backgroundColor = "#f0f0f0";
-});
-
-dropArea.addEventListener("dragleave", function(event) {
-    dropArea.style.backgroundColor = "";
-});
-
-dropArea.addEventListener("drop", function(event) {
-    event.preventDefault();
-    const file = event.dataTransfer.files[0];
-
-    // Проверка формата файла
-    if (!allowedFormats.includes(file.type)) {
-        // Показываем предупреждение
-        warningMessage.style.display = "block";
-        dropArea.style.backgroundColor = "#f8d7da"; // Меняем фон области на красный
-    } else {
-        // Если формат правильный, скрываем предупреждение
-        warningMessage.style.display = "none";
-        dropArea.style.backgroundColor = "#fafafa";
-
-        // Подготовка данных для отправки
-        const formData = new FormData();
-        formData.append("file", file);
-
-        fetch("/uploadfile/", {
-            method: "POST",
-            body: formData,
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert("Файл загружен и обработан!");
-        })
-        .catch(error => {
-            alert("Ошибка при загрузке файла!");
-        });
-    }
-});
-
 // Запись аудио
 let isRecording = false;
 let mediaRecorder;
@@ -110,25 +62,35 @@ async function toggleRecording() {
     }
 }
 
-// Функция для отправки записанного аудио на сервер
-function uploadAudioToServer(blob) {
-    const formData = new FormData();
-    formData.append("file", blob, "recorded_audio.wav");
+// Обработчик отправки формы
+document.getElementById("upload-form").addEventListener("submit", function(event) {
+    event.preventDefault();  // Останавливаем обычное поведение формы
 
+    const formData = new FormData(this);
+    const messageDiv = document.getElementById("message");
+
+    // Отправка файла через fetch
     fetch("/uploadfile/", {
         method: "POST",
         body: formData
     })
     .then(response => response.json())
     .then(data => {
-        console.log("Файл успешно загружен на сервер:", data);
-        alert("Записанное аудио успешно загружено!");
+        if (data.status === "Файл обработан успешно") {
+            messageDiv.style.color = "green";
+            messageDiv.innerText = "Файл успешно загружен на сервер!";
+        } else {
+            messageDiv.style.color = "red";
+            messageDiv.innerText = `Ошибка: ${data.error || "Неизвестная ошибка"}`;
+        }
+        messageDiv.style.display = "block";
     })
     .catch(error => {
-        console.error("Ошибка при загрузке файла на сервер:", error);
-        alert("Ошибка при загрузке аудио на сервер.");
+        messageDiv.style.color = "red";
+        messageDiv.innerText = `Ошибка при загрузке файла: ${error.message}`;
+        messageDiv.style.display = "block";
     });
-}
+});
 
 // Слушатель события для кнопки записи
 recordButton.addEventListener("click", toggleRecording);
