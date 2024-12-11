@@ -1,39 +1,102 @@
+<!-- static/index.html -->
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Загрузка файлов</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Speech Recognition</title>
+    <style>
+        #output {
+            width: 100%;
+            height: 200px;
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        #startButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .recording {
+            background-color: red;
+            color: white;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Загрузите файл (mp3, mp4, wav)</h2>
+    <button id="startButton">Start Recording</button>
+    <div id="output"></div>
 
-        <!-- Форма для загрузки файла -->
-        <form id="upload-form" enctype="multipart/form-data">
-            <input type="file" name="file" accept=".mp3, .mp4, .wav" required>
-            <button type="submit">Загрузить</button>
-        </form>
+    <script>
+        let recognition;
+        const startButton = document.getElementById('startButton');
+        const output = document.getElementById('output');
+        let ws = new WebSocket(`ws://${window.location.host}/ws`);
 
-        <!-- Место для вывода сообщения -->
-        <div id="message" style="display: none;"></div>
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'ru-RU'; // Можно изменить язык
 
-        <!-- Запись аудио -->
-        <h2>Записать аудио:</h2>
-        <button id="record-button">
-            <img src="/static/micro.jpg" alt="Микрофон" width="30" height="30">
-            Начать запись
-        </button>
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
 
-        <!-- Покажем длительность записи -->
-        <p id="timer">00:00</p>
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                        // Отправляем финальный текст через WebSocket
+                        ws.send(transcript);
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
 
-        <!-- Элемент для проигрывания записанного аудио -->
-        <audio id="audio-player" controls></audio>
-    </div>
+                // Отображаем текст
+                output.innerHTML = finalTranscript + '<i style="color: #999">' + interimTranscript + '</i>';
+            };
 
-    <!-- Подключаем внешний JavaScript файл -->
-    <script src="/static/js/script.js"></script>
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+            };
+
+            let isRecording = false;
+
+            startButton.onclick = function() {
+                if (!isRecording) {
+                    recognition.start();
+                    startButton.textContent = 'Stop Recording';
+                    startButton.classList.add('recording');
+                    isRecording = true;
+                } else {
+                    recognition.stop();
+                    startButton.textContent = 'Start Recording';
+                    startButton.classList.remove('recording');
+                    isRecording = false;
+                }
+            };
+        } else {
+            output.innerHTML = 'Speech recognition is not supported in this browser.';
+            startButton.disabled = true;
+        }
+
+        // WebSocket обработчики
+        ws.onopen = function() {
+            console.log('WebSocket connected');
+        };
+
+        ws.onmessage = function(event) {
+            console.log('Received from server:', event.data);
+        };
+
+        ws.onerror = function(event) {
+            console.error('WebSocket error:',event);
+        };
+
+        ws.onclose = function() {
+            console.log('WebSocket disconnected');
+        };
+    </script>
 </body>
 </html>

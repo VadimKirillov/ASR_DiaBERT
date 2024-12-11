@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -13,18 +13,34 @@ app = FastAPI()
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# Подключаем статические файлы (CSS и JS)
-static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+static_path = os.path.join(BASE_DIR, "static")
+os.makedirs(static_path, exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 
-# Подключаем шаблон (HTML)
-templates = Jinja2Templates(directory="templates")
+
+# Абсолютный путь к директории templates
+templates_path = os.path.join(os.path.dirname(__file__), "templates")
+templates = Jinja2Templates(directory=templates_path)
 
 
-# Главная страница с формой загрузки
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+async def get():
+    with open("static/index.html", "r") as f:
+        return f.read()
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            # Получаем текст от клиента
+            data = await websocket.receive_text()
+            # Отправляем его обратно (можно добавить дополнительную обработку)
+            await websocket.send_text(data)
+    except:
+        await websocket.close()
 
 
 # Эндпоинт для загрузки файла
