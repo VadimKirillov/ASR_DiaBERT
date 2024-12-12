@@ -2,6 +2,7 @@ from fastapi import FastAPI, File, UploadFile, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import HTTPException
 from fastapi import Request
 import shutil
 import os
@@ -27,7 +28,7 @@ templates = Jinja2Templates(directory=templates_path)
 
 @app.get("/", response_class=HTMLResponse)
 async def get():
-    with open("static/index.html", "r") as f:
+    with open("templates/index.html", "r") as f:
         return f.read()
 
 @app.websocket("/ws")
@@ -47,10 +48,17 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.post("/uploadfile/")
 async def upload_file(file: UploadFile = File(...)):
     try:
+        # Проверка типа файла
+        if not file.content_type.startswith("audio/"):
+            raise HTTPException(status_code=400, detail="Файл должен быть аудио формата.")
+
         # Сохраняем файл на сервере
         file_location = os.path.join(UPLOAD_DIR, file.filename)
         with open(file_location, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+
+        # Логируем путь файла
+        print(f"Файл сохранен: {file_location}")
 
         # Путь к сохраненному файлу
         file_path = file_location
@@ -67,5 +75,7 @@ async def upload_file(file: UploadFile = File(...)):
             return {"status": "Файл обработан успешно", "data": response.json()}
         else:
             return {"status": "Ошибка обработки файла", "error": response.text}
+    except HTTPException as e:
+        raise e
     except Exception as e:
         return {"status": "Ошибка загрузки", "error": str(e)}
