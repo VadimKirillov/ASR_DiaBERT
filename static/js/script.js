@@ -1,96 +1,150 @@
-// static/js/script.js
+let recognition;
+    const startButton = document.getElementById('startButton');
+    const output = document.getElementById('output');
+    const statusText = document.getElementById('statusText');
+    const audioFile = document.getElementById('audioFile');
+    const uploadForm = document.getElementById('uploadForm');
+    const downloadPdfButton = document.getElementById('downloadPdfButton'); // Кнопка загрузки PDF
+    let ws = new WebSocket(`ws://${window.location.host}/ws`);
 
-// Запись аудио
-let isRecording = false;
-let mediaRecorder;
-let audioChunks = [];
-let timer;
-let audioBlob;
-let audioUrl;
+    // Speech recognition setup
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'ru-RU';
 
-const recordButton = document.getElementById("record-button");
-const timerElement = document.getElementById("timer");
-const audioPlayer = document.getElementById("audio-player");
+        recognition.onresult = function(event) {
+            let interimTranscript = '';
+            let finalTranscript = '';
 
-// Функция для начала или остановки записи
-async function toggleRecording() {
-    if (isRecording) {
-        // Останавливаем запись
-        mediaRecorder.stop();
-        recordButton.innerHTML = '<img src="/static/microphone-icon.png" alt="Микрофон" width="30" height="30"> Начать запись';
-        isRecording = false;
-        clearInterval(timer); // Останавливаем таймер
-    } else {
-        // Начинаем запись
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-
-        mediaRecorder.ondataavailable = event => {
-            audioChunks.push(event.data);
-        };
-
-        mediaRecorder.onstop = () => {
-            audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-            audioUrl = URL.createObjectURL(audioBlob);
-            audioPlayer.src = audioUrl; // Показываем записанный файл
-            audioChunks = []; // Очищаем массив для следующей записи
-            uploadAudioToServer(audioBlob); // Отправляем файл на сервер
-        };
-
-        // Ограничение на 1 минуту (60000 миллисекунд)
-        setTimeout(() => {
-            if (isRecording) {
-                mediaRecorder.stop(); // Автоматически останавливаем запись
-                recordButton.innerHTML = '<img src="/static/microphone-icon.png" alt="Микрофон" width="30" height="30"> Начать запись';
-                isRecording = false;
-                clearInterval(timer);
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript;
+                    ws.send(transcript);
+                } else {
+                    interimTranscript += transcript;
+                }
             }
-        }, 60000); // 60 секунд
 
-        mediaRecorder.start();
-        recordButton.innerHTML = '<img src="/static/microphone-icon-stop.png" alt="Стоп" width="30" height="30"> Остановить запись';
-        isRecording = true;
+            output.innerHTML = finalTranscript + '<i>' + interimTranscript + '</i>';
+        };
 
-        // Обновление таймера
-        let seconds = 0;
-        timer = setInterval(() => {
-            seconds++;
-            let minutes = Math.floor(seconds / 60);
-            let secs = seconds % 60;
-            timerElement.innerText = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }, 1000);
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error:', event.error);
+        };
+
+        let isRecording = false;
+
+        startButton.onclick = function() {
+            if (!isRecording) {
+                recognition.start();
+                startButton.textContent = 'Stop recording';
+                startButton.classList.add('recording');
+                isRecording = true;
+                statusText.textContent = 'Recording in progress...';
+            } else {
+                recognition.stop();
+                startButton.textContent = 'Start recording';
+                startButton.classList.remove('recording');
+                isRecording = false;
+                statusText.textContent = 'Recording stopped.';
+
+                // Показываем кнопку загрузки PDF после остановки записи
+                showDownloadButton();
+            }
+        };
+    } else {
+        output.innerHTML = 'Your browser does not support speech recognition.';
+        startButton.disabled = true;
     }
+
+    // WebSocket handlers
+    ws.onopen = function() {
+        console.log('WebSocket connected');
+    };
+
+    ws.onmessage = function(event) {
+        console.log('Received from server:', event.data);
+    };
+
+    ws.onerror = function(event) {
+        console.error('WebSocket error:', event);
+    };
+
+    ws.onclose = function() {
+        console.log('WebSocket disconnected');
+    };
+
+    // Upload audio file
+    uploadForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const file = audioFile.files[0];
+        if (!file) {
+            alert('Please select an audio file to upload.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/uploadfile/', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (result.status === 'Файл обработан успешно') {
+                output.innerHTML = `<strong>Result:</strong> ${JSON.stringify(result.data)}`;
+            } else {
+                output.innerHTML = `<strong>Error:</strong> ${result.error}`;
+            }
+
+            // Показываем кнопку загрузки PDF после обработки
+            showDownloadButton();
+        } catch (error) {
+            console.error('Upload error:', error);
+            output.innerHTML = '<strong>Error:</strong> Unable to upload file.';
+        }
+    };
+
+    // Показать кнопку загрузки DOCX
+function showDownloadButton() {
+    downloadDocxButton.style.display = 'inline-block';
 }
 
-// Обработчик отправки формы
-document.getElementById("upload-form").addEventListener("submit", function(event) {
-    event.preventDefault();  // Останавливаем обычное поведение формы
+// Генерация и скачивание DOCX
+downloadDocxButton.onclick = async () => {
+    const text = output.textContent.trim(); // Берем содержимое из output
+    if (!text) {
+        alert('Нет текста для генерации документа.');
+        return;
+    }
 
-    const formData = new FormData(this);
-    const messageDiv = document.getElementById("message");
+    try {
+        const response = await fetch(`/generate-docx?text=${encodeURIComponent(text)}`, {
+            method: 'GET'
+        });
 
-    // Отправка файла через fetch
-    fetch("/uploadfile/", {
-        method: "POST",
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === "Файл обработан успешно") {
-            messageDiv.style.color = "green";
-            messageDiv.innerText = "Файл успешно загружен на сервер!";
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            // Создаем временную ссылку для скачивания
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'result.docx';
+            link.click();
+
+            // Очищаем URL после использования
+            window.URL.revokeObjectURL(url);
         } else {
-            messageDiv.style.color = "red";
-            messageDiv.innerText = `Ошибка: ${data.error || "Неизвестная ошибка"}`;
+            alert('Ошибка при генерации документа.');
         }
-        messageDiv.style.display = "block";
-    })
-    .catch(error => {
-        messageDiv.style.color = "red";
-        messageDiv.innerText = `Ошибка при загрузке файла: ${error.message}`;
-        messageDiv.style.display = "block";
-    });
-});
-
-// Слушатель события для кнопки записи
-recordButton.addEventListener("click", toggleRecording);
+    } catch (error) {
+        console.error('Ошибка при скачивании документа:', error);
+        alert('Произошла ошибка при скачивании документа.');
+    }
+};

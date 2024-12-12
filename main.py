@@ -5,6 +5,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
 from fpdf import FPDF
+from datetime import datetime
+from docx import Document
 from fastapi import Query
 from fastapi import Request
 import shutil
@@ -29,7 +31,7 @@ templates = Jinja2Templates(directory=templates_path)
 
 @app.get("/", response_class=HTMLResponse)
 async def get():
-    with open("templates/index.html", "r") as f:
+    with open("templates/index.html", "r", encoding="utf-8") as f:
         return f.read()
 
 
@@ -83,18 +85,33 @@ async def upload_file(file: UploadFile = File(...)):
         return {"status": "Ошибка загрузки", "error": str(e)}
 
 
-@app.get("/generate-pdf")
-async def generate_pdf(text: str = Query(..., description="Text to include in the PDF")):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="Your processed result:", ln=True, align='L')
+@app.get("/generate-docx")
+async def generate_docx(text: str = Query(..., description="Text to include in the DOCX")):
+    # Создаем новый документ
+    doc = Document()
 
-    # Добавляем переданный текст
-    pdf.multi_cell(0, 10, text)
+    # Добавляем текст в документ
+    doc.add_paragraph(text)
 
-    # Сохраняем PDF
-    pdf_file_path = os.path.join(UPLOAD_DIR, "result.pdf")
-    pdf.output(pdf_file_path)
+    # Создаем имя файла с временной меткой
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"result_{timestamp}.docx"
+    file_path = f"temp/{filename}"
 
-    return FileResponse(pdf_file_path, media_type="application/pdf", filename="result.pdf")
+    # Создаем директорию temp, если она не существует
+    os.makedirs("temp", exist_ok=True)
+
+    # Сохраняем документ
+    doc.save(file_path)
+
+    # Отправляем файл клиенту
+    response = FileResponse(
+        file_path,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        filename=filename
+    )
+
+    # Добавляем callback для удаления временного файла после отправки
+    response.background = lambda: os.remove(file_path)
+
+    return response
