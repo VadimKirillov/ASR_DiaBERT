@@ -3,6 +3,9 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import HTTPException
+from fastapi.responses import FileResponse
+from fpdf import FPDF
+from fastapi import Query
 from fastapi import Request
 import shutil
 import os
@@ -14,12 +17,10 @@ app = FastAPI()
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 static_path = os.path.join(BASE_DIR, "static")
 os.makedirs(static_path, exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_path), name="static")
-
 
 # Абсолютный путь к директории templates
 templates_path = os.path.join(os.path.dirname(__file__), "templates")
@@ -30,6 +31,7 @@ templates = Jinja2Templates(directory=templates_path)
 async def get():
     with open("templates/index.html", "r") as f:
         return f.read()
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -79,3 +81,20 @@ async def upload_file(file: UploadFile = File(...)):
         raise e
     except Exception as e:
         return {"status": "Ошибка загрузки", "error": str(e)}
+
+
+@app.get("/generate-pdf")
+async def generate_pdf(text: str = Query(..., description="Text to include in the PDF")):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="Your processed result:", ln=True, align='L')
+
+    # Добавляем переданный текст
+    pdf.multi_cell(0, 10, text)
+
+    # Сохраняем PDF
+    pdf_file_path = os.path.join(UPLOAD_DIR, "result.pdf")
+    pdf.output(pdf_file_path)
+
+    return FileResponse(pdf_file_path, media_type="application/pdf", filename="result.pdf")

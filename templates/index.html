@@ -130,112 +130,159 @@
         </form>
         <div id="output"></div>
         <div class="status" id="statusText"></div>
+        <button id="downloadPdfButton" style="display: none;">Download PDF</button>
     </div>
     <script>
-        let recognition;
-        const startButton = document.getElementById('startButton');
-        const output = document.getElementById('output');
-        const statusText = document.getElementById('statusText');
-        const audioFile = document.getElementById('audioFile');
-        const uploadForm = document.getElementById('uploadForm');
-        let ws = new WebSocket(`ws://${window.location.host}/ws`);
+    let recognition;
+    const startButton = document.getElementById('startButton');
+    const output = document.getElementById('output');
+    const statusText = document.getElementById('statusText');
+    const audioFile = document.getElementById('audioFile');
+    const uploadForm = document.getElementById('uploadForm');
+    const downloadPdfButton = document.getElementById('downloadPdfButton'); // Кнопка загрузки PDF
+    let ws = new WebSocket(`ws://${window.location.host}/ws`);
 
-        // Speech recognition setup
-        if ('webkitSpeechRecognition' in window) {
-            recognition = new webkitSpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'ru-RU';
+    // Speech recognition setup
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'ru-RU';
 
-            recognition.onresult = function(event) {
-                let interimTranscript = '';
-                let finalTranscript = '';
+        recognition.onresult = function(event) {
+            let interimTranscript = '';
+            let finalTranscript = '';
 
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        finalTranscript += transcript;
-                        ws.send(transcript);
-                    } else {
-                        interimTranscript += transcript;
-                    }
-                }
-
-                output.innerHTML = finalTranscript + '<i>' + interimTranscript + '</i>';
-            };
-
-            recognition.onerror = function(event) {
-                console.error('Speech recognition error:', event.error);
-            };
-
-            let isRecording = false;
-
-            startButton.onclick = function() {
-                if (!isRecording) {
-                    recognition.start();
-                    startButton.textContent = 'Stop recording';
-                    startButton.classList.add('recording');
-                    isRecording = true;
-                    statusText.textContent = 'Recording in progress...';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript;
+                    ws.send(transcript);
                 } else {
-                    recognition.stop();
-                    startButton.textContent = 'Start recording';
-                    startButton.classList.remove('recording');
-                    isRecording = false;
-                    statusText.textContent = 'Recording stopped.';
+                    interimTranscript += transcript;
                 }
-            };
-        } else {
-            output.innerHTML = 'Your browser does not support speech recognition.';
-            startButton.disabled = true;
+            }
+
+            output.innerHTML = finalTranscript + '<i>' + interimTranscript + '</i>';
+        };
+
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error:', event.error);
+        };
+
+        let isRecording = false;
+
+        startButton.onclick = function() {
+            if (!isRecording) {
+                recognition.start();
+                startButton.textContent = 'Stop recording';
+                startButton.classList.add('recording');
+                isRecording = true;
+                statusText.textContent = 'Recording in progress...';
+            } else {
+                recognition.stop();
+                startButton.textContent = 'Start recording';
+                startButton.classList.remove('recording');
+                isRecording = false;
+                statusText.textContent = 'Recording stopped.';
+
+                // Показываем кнопку загрузки PDF после остановки записи
+                showDownloadButton();
+            }
+        };
+    } else {
+        output.innerHTML = 'Your browser does not support speech recognition.';
+        startButton.disabled = true;
+    }
+
+    // WebSocket handlers
+    ws.onopen = function() {
+        console.log('WebSocket connected');
+    };
+
+    ws.onmessage = function(event) {
+        console.log('Received from server:', event.data);
+    };
+
+    ws.onerror = function(event) {
+        console.error('WebSocket error:', event);
+    };
+
+    ws.onclose = function() {
+        console.log('WebSocket disconnected');
+    };
+
+    // Upload audio file
+    uploadForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const file = audioFile.files[0];
+        if (!file) {
+            alert('Please select an audio file to upload.');
+            return;
         }
 
-        // WebSocket handlers
-        ws.onopen = function() {
-            console.log('WebSocket connected');
-        };
+        const formData = new FormData();
+        formData.append('file', file);
 
-        ws.onmessage = function(event) {
-            console.log('Received from server:', event.data);
-        };
+        try {
+            const response = await fetch('/uploadfile/', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
 
-        ws.onerror = function(event) {
-            console.error('WebSocket error:', event);
-        };
-
-        ws.onclose = function() {
-            console.log('WebSocket disconnected');
-        };
-
-        // Upload audio file
-        uploadForm.onsubmit = async (e) => {
-            e.preventDefault();
-            const file = audioFile.files[0];
-            if (!file) {
-                alert('Please select an audio file to upload.');
-                return;
+            if (result.status === 'Файл обработан успешно') {
+                output.innerHTML = `<strong>Result:</strong> ${JSON.stringify(result.data)}`;
+            } else {
+                output.innerHTML = `<strong>Error:</strong> ${result.error}`;
             }
 
-            const formData = new FormData();
-            formData.append('file', file);
+            // Показываем кнопку загрузки PDF после обработки
+            showDownloadButton();
+        } catch (error) {
+            console.error('Upload error:', error);
+            output.innerHTML = '<strong>Error:</strong> Unable to upload file.';
+        }
+    };
 
-            try {
-                const response = await fetch('/uploadfile/', {
-                    method: 'POST',
-                    body: formData
-                });
-                const result = await response.json();
+    // Показать кнопку загрузки PDF
+    function showDownloadButton() {
+        downloadPdfButton.style.display = 'inline-block';
+    }
 
-                if (result.status === 'Файл обработан успешно') {
-                    output.innerHTML = `<strong>Result:</strong> ${JSON.stringify(result.data)}`;
-                } else {
-                    output.innerHTML = `<strong>Error:</strong> ${result.error}`;
-                }
-            } catch (error) {
-                console.error('Upload error:', error);
-                output.innerHTML = '<strong>Error:</strong> Unable to upload file.';
-            }
-        };
-    </script>
+   // Генерация и скачивание PDF
+downloadPdfButton.onclick = async () => {
+    const text = output.textContent.trim(); // Берем содержимое из output
+    if (!text) {
+        alert('No text available to generate PDF.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/generate-pdf?text=${encodeURIComponent(text)}`, {
+            method: 'GET'
+        });
+
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            // Создаем временную ссылку для скачивания
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'result.pdf';
+            link.click();
+
+            // Очищаем URL после использования
+            window.URL.revokeObjectURL(url);
+        } else {
+            alert('Error generating PDF.');
+        }
+    } catch (error) {
+        console.error('Error downloading PDF:', error);
+    }
+};
+</script>
+
 </body>
 </html>
