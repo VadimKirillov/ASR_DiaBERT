@@ -89,11 +89,12 @@ async def upload_file(file: UploadFile = File(...)):
         file_path = file_location
 
         external_api_url = f"{SERVER_URL}/transcribe/"
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=False, timeout=30.0) as client:  # добавляем timeout
             with open(file_location, 'rb') as f:
+                time.sleep(1)
                 files = {'file': (file.filename, f, file.content_type)}
                 response = await client.post(external_api_url, files=files)
-        print(response.text)
+                print(f"Тело ответа: {response.text}")
 
         # Проверяем ответ
         if response.status_code == 200:
