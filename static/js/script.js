@@ -127,7 +127,6 @@ recordingRecognition.onresult = function(event) {
             startButton.classList.remove('recording');
             startButton.style.backgroundColor = '';
             statusText.textContent = 'Распознавание остановлено';
-            showDownloadButton();
         } catch (e) {
             console.error('Error stopping recording:', e);
         }
@@ -160,58 +159,13 @@ recordingRecognition.onresult = function(event) {
         commandRecognition.start();
     }
 
-    // Показать кнопку загрузки DOCX
-function showDownloadButton() {
-    downloadDocxButton.style.display = 'inline-block';
-    makeTimeTableButton.style.display = 'inline-block';
-    clearTextButton.style.display = 'inline-block';
-}
-
-downloadDocxButton.onclick = async () => {
-    const text = output.textContent.trim(); // Берем содержимое из output
-    if (!text) {
-        alert('Нет текста для генерации документа.');
-        return;
-    }
-
-    try {
-        // Исправлен синтаксис шаблонной строки
-        const response = await fetch(`/generate-docx?text=${encodeURIComponent(text)}`, {
-            method: 'GET'
-        });
-
-        if (response.ok) {
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-
-            // Создаем временную ссылку для скачивания
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'result.docx';
-            document.body.appendChild(link); // Добавляем ссылку в DOM
-            link.click();
-            document.body.removeChild(link); // Удаляем ссылку из DOM
-
-            // Очищаем URL после небольшой задержки
-            setTimeout(() => {
-                window.URL.revokeObjectURL(url);
-            }, 100);
-        } else {
-            alert('Ошибка при генерации документа.');
-        }
-    } catch (error) {
-        console.error('Ошибка при скачивании документа:', error);
-        alert('Произошла ошибка при скачивании документа.');
-    }
-};
-
 document.getElementById('clearTextButton').addEventListener('click', function() {
     document.getElementById('output').textContent = ''; // очищаем текстовое содержимое
     // или
     // document.getElementById('output').value = ''; // если это текстовое поле ввода
 });
 
-javascriptdocument.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     // Делаем текстовое поле редактируемым
     document.getElementById('output').setAttribute('contenteditable', 'true');
 
@@ -253,3 +207,83 @@ function formatTimeCell(cell) {
         cell.classList.remove('invalid');
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const addButton = document.querySelector('.add-row');
+    const tbody = document.querySelector('.operations-table tbody');
+
+    // Функция для создания новой строки
+    function createNewRow() {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td contenteditable="true"></td>
+            <td contenteditable="true" class="time-cell"></td>
+            <td contenteditable="true" class="time-cell"></td>
+            <td><button class="delete-row">-</button></td>
+        `;
+        return tr;
+    }
+
+    // Обработчик добавления новой строки
+    addButton.addEventListener('click', function() {
+        const newRow = createNewRow();
+        tbody.appendChild(newRow);
+    });
+
+    // Обработчик удаления строки (делегирование событий)
+    tbody.addEventListener('click', function(e) {
+        if (e.target.classList.contains('delete-row')) {
+            const row = e.target.closest('tr');
+            if (tbody.children.length > 1) { // Проверка, чтобы всегда оставалась хотя бы одна строка
+                row.remove();
+            }
+        }
+    });
+});
+
+document.getElementById('downloadDocxButton').addEventListener('click', async function() {
+    // Получаем данные из редактируемого div
+    const textContent = document.getElementById('output').innerHTML;
+
+    // Получаем данные из таблицы
+    const tableRows = [];
+    const tbody = document.querySelector('.operations-table tbody');
+    for (let row of tbody.rows) {
+        tableRows.push({
+            operation: row.cells[0].textContent,
+            startTime: row.cells[1].textContent,
+            endTime: row.cells[2].textContent
+        });
+    }
+
+    try {
+        const response = await fetch('/generate-docx', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                text: textContent,
+                tableData: tableRows
+            })
+        });
+
+        if (response.ok) {
+            // Получаем blob из ответа
+            const blob = await response.blob();
+            // Создаем ссылку для скачивания
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = 'document.docx';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(downloadUrl);
+        } else {
+            console.error('Error generating DOCX');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});

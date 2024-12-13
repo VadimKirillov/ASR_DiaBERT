@@ -5,15 +5,33 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
 from fpdf import FPDF
+import logging
 from datetime import datetime
 from docx import Document
+from pydantic import BaseModel
+from typing import List
 from fastapi import Query
 from fastapi import Request
 import shutil
 import os
+from tempfile import NamedTemporaryFile
+from fastapi.background import BackgroundTasks
 import requests
+from docx.shared import Inches
+import io
+
+SERVER_URL = "https://d776-193-41-143-66.ngrok-free.app"
 
 app = FastAPI()
+
+class TableRow(BaseModel):
+    operation: str
+    startTime: str
+    endTime: str
+
+class DocumentData(BaseModel):
+    text: str
+    tableData: List[TableRow]
 
 # Настройка папок для хранения файлов
 UPLOAD_DIR = "uploads"
@@ -70,7 +88,7 @@ async def upload_file(file: UploadFile = File(...)):
         file_path = file_location
 
         # Использование внешнего API для отправки файла
-        external_api_url = "https://0954-193-41-143-66.ngrok-free.app/transcribe/"
+        external_api_url = f"{SERVER_URL}/transcribe/"
         with open(file_path, 'rb') as f:
             # Отправляем файл на внешний API
             files = {'file': f}
@@ -87,33 +105,43 @@ async def upload_file(file: UploadFile = File(...)):
         return {"status": "Ошибка загрузки", "error": str(e)}
 
 
-@app.get("/generate-docx")
-async def generate_docx(text: str = Query(..., description="Text to include in the DOCX")):
-    # Создаем новый документ
-    doc = Document()
+@app.post("/generate-docx")
+async def generate_docx(data: DocumentData):
+    try:
+        # Создаем новый документ
+        doc = Document()
 
-    # Добавляем текст в документ
-    doc.add_paragraph(text)
+        # Добавляем текст из редактируемого div
+        doc.add_paragraph(data.text)
 
-    # Создаем имя файла с временной меткой
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"result_{timestamp}.docx"
-    file_path = f"temp/{filename}"
+        # Добавляем таблицу
+        table = doc.add_table(rows=1, cols=3)
+        table.style = 'Table Grid'
 
-    # Создаем директорию temp, если она не существует
-    os.makedirs("temp", exist_ok=True)
+        # Заголовки таблицы
+        header_cells = table.rows[0].cells
+        header_cells[0].text = 'Операция'
+        header_cells[1].text = 'Время начала'
+        header_cells[2].text = 'Время завершения'
 
-    # Сохраняем документ
-    doc.save(file_path)
+        # Добавляем данные в таблицу
+        for row_data in data.tableData:
+            row_cells = table.add_row().cells
+            row_cells[0].text = row_data.operation
+            row_cells[1].text = row_data.startTime
+            row_cells[2].text = row_data.endTime
 
-    # Отправляем файл клиенту
-    response = FileResponse(
-        file_path,
-        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        filename=filename
-    )
+        # Создаем временный файл
+        with NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
+            doc.save(tmp.name)
+            tmp_path = tmp.name
 
-    # Добавляем callback для удаления временного файла после отправки
-    response.background = lambda: os.remove(file_path)
+        # Возвращаем файл и удаляем его после отправки
+        return FileResponse(
+            tmp_path,
+            media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            filename='time_tracking.docx'
+        )
 
-    return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

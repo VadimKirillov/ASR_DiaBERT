@@ -40,23 +40,25 @@
                     <th>Операция</th>
                     <th>Время начала</th>
                     <th>Время завершения</th>
+                    <th></th><!-- Добавлен столбец для кнопки удаления -->
                 </tr>
             </thead>
             <tbody>
-                <!-- Здесь будут строки таблицы -->
-            <tr>
-                <td contenteditable="true">Тестовая операция</td>
-                <td contenteditable="true" class="time-cell">09:00</td>
-                <td contenteditable="true" class="time-cell">10:30</td>
-            </tr>
+                <tr>
+                    <td contenteditable="true">Тестовая операция</td>
+                    <td contenteditable="true" class="time-cell">09:00</td>
+                    <td contenteditable="true" class="time-cell">10:30</td>
+                    <td><button class="delete-row">-</button></td>
+                </tr>
             </tbody>
         </table>
+        <button class="add-row">+</button>
     </div>
 </div>
         <div class="status" id="statusText"></div>
-        <button id="clearTextButton" style="display: none;">Отчистить текст</button>
-        <button id="makeTimeTableButton" style="display: none;">Создать расписание</button>
-        <button id="downloadDocxButton" style="display: none;">Скачать DOCX</button>
+        <button id="clearTextButton" style="display: inline;">Отчистить текст</button>
+        <button id="makeTimeTableButton" style="display: inline;">Создать расписание</button>
+        <button id="downloadDocxButton" style="display: inline;">Скачать DOCX</button>
 
 
     </div>
