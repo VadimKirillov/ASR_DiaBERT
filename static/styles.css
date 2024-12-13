@@ -388,3 +388,65 @@ input:checked + .slider:before {
     background-color: #ff416c;
     box-shadow: 0 0 5px rgba(255,75,43,0.5);
 }
+.tooltip-icon {
+    margin-left: 10px;
+    font-size: 18px; /* Размер иконки */
+    font-weight: bold;
+    color: #555;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9f9f9;
+    position: relative;
+}
+
+.tooltip-icon:hover {
+    background-color: #eaeaea;
+    color: #000;
+}
+
+.tooltip-icon[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    top: -60px; /* Расположение над иконкой */
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: pre-wrap; /* Поддержка многострочного текста */
+    z-index: 100;
+    font-size: 14px; /* Размер текста подсказки */
+    line-height: 1.4; /* Интервал между строками */
+    text-align: center;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease;
+    width: max-content; /* Ширина подсказки по содержимому */
+    max-width: 220px; /* Ограничение ширины */
+}
+
+.tooltip-icon[data-tooltip]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: -8px; /* Смещение треугольника */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 8px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+    z-index: 99;
+    visibility: visible;
+    opacity: 1;
+}
+
+
+
+
+

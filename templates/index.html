@@ -18,7 +18,7 @@
 </head>
 <body>
     <div class="container">
-    <h2>Аудио Тайм-трекер</h2>
+    <h2>Аудио Тайм-трекер DiaBert</h2>
     <div class="center-button-wrapper">
         <button id="startButton" class="main-button">
             <i class="fas fa-play"></i> Начать запись
@@ -26,17 +26,17 @@
     </div>
 
     <div class="mode-row">
-        <span>Режим начала записи по командам - "Старт", "Начать запись", "Зарегистрировать время"</span>
-        <div class="toggle-wrapper">
-            <label class="toggle">
-                <input type="checkbox" id="timeTrackerToggle">
-                <span class="slider"></span>
-            </label>
-        </div>
+    <span>Голосовое управление</span>
+    <div class="toggle-wrapper">
+        <label class="toggle">
+            <input type="checkbox" id="timeTrackerToggle">
+            <span class="slider"></span>
+        </label>
     </div>
-    <div class="mode-row">
-        <span>Остановка записи по командам - "Стоп" и "Завершить"</span>
-    </div>
+    <!-- Иконка подсказки -->
+    <span class="tooltip-icon" data-tooltip="Включите режим голосового управления.&#10;Команды: «Начать запись», «Старт».&#10;Команды: «Стоп», «Завершить».">?</span>
+</div>
+
 
     <form id="uploadForm">
         <input type="file" id="audioFile" accept="audio/*">
