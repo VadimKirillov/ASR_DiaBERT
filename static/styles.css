@@ -192,6 +192,13 @@ input:checked + .slider:before {
     background-color: #f9f9f9;
     min-height: 300px;
     width: 100%;
+    outline: none; /* Убираем стандартную обводку при фокусе */
+    cursor: text; /* Показываем курсор ввода текста */
+}
+
+#output:focus {
+    border-color: #4CAF50;
+    background-color: #fff;
 }
 
 .operations-table {
@@ -243,5 +250,27 @@ input:checked + .slider:before {
 
 .operations-table tr:last-child td {
     border-bottom: none;
+}
+
+css[contenteditable="true"] {
+    outline: none;
+    padding: 5px;
+    border: 1px solid transparent;
+}
+
+[contenteditable="true"]:hover {
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+[contenteditable="true"]:focus {
+    border: 1px solid #4CAF50;
+    border-radius: 3px;
+    background-color: #fff;
+}
+
+.time-cell.invalid {
+    border: 1px solid #ff4444;
+    background-color: #ffe6e6;
 }
 

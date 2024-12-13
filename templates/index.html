@@ -31,19 +31,24 @@
         </form>
 <div class="content-wrapper">
     <div class="recognition-results">
-        <div id="output"></div>
+        <div id="output" contenteditable="true"></div>
     </div>
     <div class="operations-table">
         <table>
             <thead>
                 <tr>
                     <th>Операция</th>
-                    <th>Время начала операции</th>
-                    <th>Длительность операции</th>
+                    <th>Время начала</th>
+                    <th>Время завершения</th>
                 </tr>
             </thead>
             <tbody>
                 <!-- Здесь будут строки таблицы -->
+            <tr>
+                <td contenteditable="true">Тестовая операция</td>
+                <td contenteditable="true" class="time-cell">09:00</td>
+                <td contenteditable="true" class="time-cell">10:30</td>
+            </tr>
             </tbody>
         </table>
     </div>

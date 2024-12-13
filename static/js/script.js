@@ -210,3 +210,46 @@ document.getElementById('clearTextButton').addEventListener('click', function() 
     // или
     // document.getElementById('output').value = ''; // если это текстовое поле ввода
 });
+
+javascriptdocument.addEventListener('DOMContentLoaded', function() {
+    // Делаем текстовое поле редактируемым
+    document.getElementById('output').setAttribute('contenteditable', 'true');
+
+    // Добавляем обработчик для проверки времени
+    document.querySelectorAll('.time-cell').forEach(cell => {
+        cell.addEventListener('input', function(e) {
+            validateTimeCell(this);
+        });
+
+        cell.addEventListener('blur', function(e) {
+            formatTimeCell(this);
+        });
+    });
+});
+
+function validateTimeCell(cell) {
+    const value = cell.textContent;
+    const timePattern = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+
+    if (!timePattern.test(value) && value.length >= 5) {
+        cell.classList.add('invalid');
+    } else {
+        cell.classList.remove('invalid');
+    }
+}
+
+function formatTimeCell(cell) {
+    let value = cell.textContent.trim();
+    const timePattern = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+
+    if (timePattern.test(value)) {
+        // Добавляем ведущие нули если необходимо
+        let [hours, minutes] = value.split(':');
+        hours = hours.padStart(2, '0');
+        cell.textContent = `${hours}:${minutes}`;
+        cell.classList.remove('invalid');
+    } else {
+        cell.textContent = '00:00';
+        cell.classList.remove('invalid');
+    }
+}
