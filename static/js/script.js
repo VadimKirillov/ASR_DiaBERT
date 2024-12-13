@@ -246,6 +246,45 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault(); // Предотвращаем стандартную отправку формы
+
+    const fileInput = document.getElementById('audioFile');
+    const outputDiv = document.getElementById('output');
+
+    if (!fileInput.files.length) {
+        alert('Пожалуйста, выберите файл');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    try {
+        // Показываем индикатор загрузки или сообщение
+        outputDiv.innerHTML = 'Обработка файла...';
+
+        const response = await fetch('/uploadfile', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Received data:', data);
+        // Отображаем полученный текст
+        outputDiv.innerHTML = data.transcribed_text || 'Текст не распознан';
+
+    } catch (error) {
+        console.error('Error:', error);
+        outputDiv.innerHTML = 'Произошла ошибка при обработке файла';
+    }
+});
+
+
 document.getElementById('downloadDocxButton').addEventListener('click', async function() {
     // Получаем данные из редактируемого div
     const textContent = document.getElementById('output').innerHTML;

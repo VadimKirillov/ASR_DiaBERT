@@ -84,8 +84,6 @@ async def websocket_endpoint(websocket: WebSocket):
             pass
 
 
-
-# Эндпоинт для загрузки файла
 @app.post("/uploadfile/")
 async def upload_file(file: UploadFile = File(...)):
     try:
@@ -108,18 +106,46 @@ async def upload_file(file: UploadFile = File(...)):
         external_api_url = f"{SERVER_URL}/transcribe/"
         with open(file_path, 'rb') as f:
             # Отправляем файл на внешний API
-            files = {'file': f}
+            files = {'file': (file.filename, f, file.content_type)}
             response = requests.post(external_api_url, files=files, verify=False)
 
-        # Возвращаем результат обработки
+        print(response.text)
+        # Проверяем ответ
         if response.status_code == 200:
-            return {"status": "Файл обработан успешно", "data": response.json()}
+            response_data = response.json()
+
+            # Проверяем наличие текста в ответе
+            if "text" in response_data:
+                return {
+                    "status": "success",
+                    "transcribed_text": response_data["text"]
+                }
+            # Если есть ошибка в ответе
+            elif "error" in response_data:
+                return {
+                    "status": "error",
+                    "message": response_data["error"]
+                }
+            else:
+                return {
+                    "status": "error",
+                    "message": "Неожиданный формат ответа от сервера"
+                }
         else:
-            return {"status": "Ошибка обработки файла", "error": response.text}
-    except HTTPException as e:
-        raise e
+            return {
+                "status": "error",
+                "message": f"Ошибка сервера: {response.status_code}"
+            }
+
     except Exception as e:
-        return {"status": "Ошибка загрузки", "error": str(e)}
+        return {
+            "status": "error",
+            "message": f"Произошла ошибка: {str(e)}"
+        }
+    finally:
+        # Удаляем временный файл
+        if os.path.exists(file_location):
+            os.remove(file_location)
 
 
 @app.post("/generate-docx")
