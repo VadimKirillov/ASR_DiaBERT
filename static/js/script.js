@@ -213,38 +213,38 @@ function formatTimeCell(cell) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const addButton = document.querySelector('.add-row');
-    const tbody = document.querySelector('.operations-table tbody');
-
-    // Функция для создания новой строки
-    function createNewRow() {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td contenteditable="true"></td>
-            <td contenteditable="true" class="time-cell"></td>
-            <td contenteditable="true" class="time-cell"></td>
-            <td><button class="delete-row">-</button></td>
-        `;
-        return tr;
-    }
-
-    // Обработчик добавления новой строки
-    addButton.addEventListener('click', function() {
-        const newRow = createNewRow();
-        tbody.appendChild(newRow);
-    });
-
-    // Обработчик удаления строки (делегирование событий)
-    tbody.addEventListener('click', function(e) {
-        if (e.target.classList.contains('delete-row')) {
-            const row = e.target.closest('tr');
-            if (tbody.children.length > 1) { // Проверка, чтобы всегда оставалась хотя бы одна строка
-                row.remove();
-            }
-        }
-    });
-});
+//document.addEventListener('DOMContentLoaded', function() {
+//    const addButton = document.querySelector('.add-row');
+//    const tbody = document.querySelector('.operations-table tbody');
+//
+//    // Функция для создания новой строки
+//    function createNewRow() {
+//        const tr = document.createElement('tr');
+//        tr.innerHTML = `
+//            <td contenteditable="true"></td>
+//            <td contenteditable="true" class="time-cell"></td>
+//            <td contenteditable="true" class="time-cell"></td>
+//            <td><button class="delete-row">-</button></td>
+//        `;
+//        return tr;
+//    }
+//
+//    // Обработчик добавления новой строки
+//    addButton.addEventListener('click', function() {
+//        const newRow = createNewRow();
+//        tbody.appendChild(newRow);
+//    });
+//
+//    // Обработчик удаления строки (делегирование событий)
+//    tbody.addEventListener('click', function(e) {
+//        if (e.target.classList.contains('delete-row')) {
+//            const row = e.target.closest('tr');
+//            if (tbody.children.length > 1) { // Проверка, чтобы всегда оставалась хотя бы одна строка
+//                row.remove();
+//            }
+//        }
+//    });
+//});
 
 document.getElementById('uploadForm').addEventListener('submit', async function(e) {
     e.preventDefault(); // Предотвращаем стандартную отправку формы
@@ -330,4 +330,103 @@ document.getElementById('downloadDocxButton').addEventListener('click', async fu
     } catch (error) {
         console.error('Error:', error);
     }
+});
+
+
+async function sendTextForAnalysis() {
+    const outputText = document.getElementById('output').innerText;
+
+    try {
+        const response = await fetch(`${window.location.protocol}//${window.location.host}/analyze_audio`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                text: outputText
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        // Получаем массив событий из ответа
+        const operations = data.events || [];
+        addNewOperations(operations);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+function addNewOperations(operations) {
+    const tbody = document.querySelector('.operations-table tbody');
+
+    operations.forEach(operation => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td contenteditable="true">${operation.action || ''}</td>
+            <td contenteditable="true" class="time-cell">${operation.start || ''}</td>
+            <td contenteditable="true" class="time-cell">${operation.end || ''}</td>
+            <td><button class="delete-row">-</button></td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    // Добавляем обработчики для новых кнопок удаления
+    attachDeleteHandlers();
+}
+
+function attachDeleteHandlers() {
+    document.querySelectorAll('.delete-row').forEach(button => {
+        if (!button.hasEventListener) {
+            button.hasEventListener = true;
+            button.addEventListener('click', function() {
+                this.closest('tr').remove();
+            });
+        }
+    });
+}
+
+function addNewRow() {
+    const tbody = document.querySelector('.operations-table tbody');
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <td contenteditable="true">Новая операция</td>
+        <td contenteditable="true" class="time-cell">00:00</td>
+        <td contenteditable="true" class="time-cell">00:00</td>
+        <td><button class="delete-row">-</button></td>
+    `;
+    tbody.appendChild(newRow);
+    attachDeleteHandlers();
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Кнопка добавления новой строки
+    const addRowButton = document.querySelector('.add-row');
+    if (addRowButton) {
+        addRowButton.addEventListener('click', addNewRow);
+    }
+
+    // Привязываем функцию к кнопке "Создать расписание"
+    const makeTimeTableButton = document.getElementById('makeTimeTableButton');
+    if (makeTimeTableButton) {
+        makeTimeTableButton.addEventListener('click', sendTextForAnalysis);
+    }
+
+    // Инициализируем обработчики удаления для существующих строк
+    attachDeleteHandlers();
 });
