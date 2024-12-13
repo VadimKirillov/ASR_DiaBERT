@@ -19,6 +19,7 @@ from fastapi.background import BackgroundTasks
 import requests
 from starlette.middleware.cors import CORSMiddleware
 from docx.shared import Inches
+from starlette.websockets import WebSocketState, WebSocketDisconnect
 import io
 
 SERVER_URL = "https://d776-193-41-143-66.ngrok-free.app"

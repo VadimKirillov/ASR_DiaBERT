@@ -1,7 +1,6 @@
 let recognition;
     const startButton = document.getElementById('startButton');
     const output = document.getElementById('output');
-    const statusText = document.getElementById('statusText');
     const audioFile = document.getElementById('audioFile');
     const uploadForm = document.getElementById('uploadForm');
     const downloadDocxButton = document.getElementById('downloadDocxButton');
@@ -118,7 +117,6 @@ if ('webkitSpeechRecognition' in window) {
             startButton.textContent = 'Остановить распознавание';
             startButton.classList.add('recording');
             startButton.style.backgroundColor = 'red';
-            statusText.textContent = 'Идёт распознавание';
         } catch (e) {
             console.error('Error starting recording:', e);
         }
@@ -134,7 +132,6 @@ if ('webkitSpeechRecognition' in window) {
             startButton.textContent = 'Начать распознавание';
             startButton.classList.remove('recording');
             startButton.style.backgroundColor = '';
-            statusText.textContent = 'Распознавание остановлено';
         } catch (e) {
             console.error('Error stopping recording:', e);
         }
