@@ -21,6 +21,7 @@ from starlette.middleware.cors import CORSMiddleware
 from docx.shared import Inches
 from starlette.websockets import WebSocketState, WebSocketDisconnect
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+import httpx
 
 import io
 
@@ -105,18 +106,16 @@ async def upload_file(file: UploadFile = File(...)):
         # Путь к сохраненному файлу
         file_path = file_location
 
-        # Использование внешнего API для отправки файла
         external_api_url = f"{SERVER_URL}/transcribe/"
-        with open(file_path, 'rb') as f:
-            # Отправляем файл на внешний API
-            files = {'file': (file.filename, f, file.content_type)}
-            response = requests.post(external_api_url, files=files, verify=False)
-
+        async with httpx.AsyncClient(verify=False) as client:
+            with open(file_location, 'rb') as f:
+                files = {'file': (file.filename, f, file.content_type)}
+                response = await client.post(external_api_url, files=files)
         print(response.text)
+
         # Проверяем ответ
         if response.status_code == 200:
             response_data = response.json()
-
             # Проверяем наличие текста в ответе
             if "text" in response_data:
                 return {
@@ -147,7 +146,7 @@ async def upload_file(file: UploadFile = File(...)):
         }
     finally:
         # Удаляем временный файл
-        if os.path.exists(file_location):
+        if file_location and os.path.exists(file_location):
             os.remove(file_location)
 
 
