@@ -264,7 +264,7 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
         // Показываем индикатор загрузки или сообщение
         outputDiv.innerHTML = 'Обработка файла...';
 
-        const response = await fetch('/uploadfile', {
+        const response = await fetch(`${window.location.protocol}//${window.location.host}/uploadfile/`, {
             method: 'POST',
             body: formData
         });
