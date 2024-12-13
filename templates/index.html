@@ -27,14 +27,32 @@
 
         <form id="uploadForm">
             <input type="file" id="audioFile" accept="audio/*">
-            <button type="submit">Загрузить аудиофайл</button>
+            <button type="submit">Обработать аудиофайл</button>
         </form>
-        <div class="recognition-results">
-            <div id="output"></div>
-        </div>
-
+<div class="content-wrapper">
+    <div class="recognition-results">
+        <div id="output"></div>
+    </div>
+    <div class="operations-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Операция</th>
+                    <th>Время начала операции</th>
+                    <th>Длительность операции</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Здесь будут строки таблицы -->
+            </tbody>
+        </table>
+    </div>
+</div>
         <div class="status" id="statusText"></div>
+        <button id="clearTextButton" style="display: none;">Отчистить текст</button>
+        <button id="makeTimeTableButton" style="display: none;">Создать расписание</button>
         <button id="downloadDocxButton" style="display: none;">Скачать DOCX</button>
+
 
     </div>
     <script src="static/js/script.js"></script>

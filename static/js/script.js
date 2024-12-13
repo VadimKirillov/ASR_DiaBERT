@@ -4,7 +4,9 @@ let recognition;
     const statusText = document.getElementById('statusText');
     const audioFile = document.getElementById('audioFile');
     const uploadForm = document.getElementById('uploadForm');
-    const downloadDocxButton = document.getElementById('downloadDocxButton'); // Кнопка загрузки PDF
+    const downloadDocxButton = document.getElementById('downloadDocxButton');
+    const makeTimeTableButton = document.getElementById('makeTimeTableButton');
+    const clearTextButton = document.getElementById('clearTextButton');
     const timeTrackerToggle = document.getElementById('timeTrackerToggle');
     let isTimeTrackerEnabled = false;
     let commandRecognition, recordingRecognition;
@@ -105,10 +107,10 @@ recordingRecognition.onresult = function(event) {
                 commandRecognition.stop();
             }
             recordingRecognition.start();
-            startButton.textContent = 'Stop recording';
+            startButton.textContent = 'Остановить распознавание';
             startButton.classList.add('recording');
             startButton.style.backgroundColor = 'red';
-            statusText.textContent = 'Recording in progress...';
+            statusText.textContent = 'Идёт распознавание';
         } catch (e) {
             console.error('Error starting recording:', e);
         }
@@ -121,10 +123,10 @@ recordingRecognition.onresult = function(event) {
             if (isTimeTrackerEnabled) {
                 commandRecognition.start();
             }
-            startButton.textContent = 'Start recording';
+            startButton.textContent = 'Начать распознавание';
             startButton.classList.remove('recording');
             startButton.style.backgroundColor = '';
-            statusText.textContent = 'Recording stopped.';
+            statusText.textContent = 'Распознавание остановлено';
             showDownloadButton();
         } catch (e) {
             console.error('Error stopping recording:', e);
@@ -161,6 +163,8 @@ recordingRecognition.onresult = function(event) {
     // Показать кнопку загрузки DOCX
 function showDownloadButton() {
     downloadDocxButton.style.display = 'inline-block';
+    makeTimeTableButton.style.display = 'inline-block';
+    clearTextButton.style.display = 'inline-block';
 }
 
 downloadDocxButton.onclick = async () => {
@@ -200,3 +204,9 @@ downloadDocxButton.onclick = async () => {
         alert('Произошла ошибка при скачивании документа.');
     }
 };
+
+document.getElementById('clearTextButton').addEventListener('click', function() {
+    document.getElementById('output').textContent = ''; // очищаем текстовое содержимое
+    // или
+    // document.getElementById('output').value = ''; // если это текстовое поле ввода
+});

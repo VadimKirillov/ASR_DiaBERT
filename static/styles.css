@@ -132,16 +132,116 @@ input:checked + .slider:before {
     background-color: #5E35B1;
 }
 
+#clearTextButton {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#clearTextButton:hover {
+    background-color: #cc0000
+}
+
+#makeTimeTableButton {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#makeTimeTableButton:hover {
+    background-color: #45a049;
+}
 .status {
     text-align: center;
     margin: 20px 0;
     color: #666;
 }
 
-#output {
+.content-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 30px; /* увеличил отступ между элементами */
     margin: 20px 0;
+}
+
+.recognition-results {
+    flex: 1; /* увеличил пропорцию для текстового блока */
+    max-width: 40%; /* увеличил максимальную ширину для текста */
+}
+
+#output {
+    margin: 0;
     padding: 15px;
     border: 1px solid #ddd;
     border-radius: 5px;
     background-color: #f9f9f9;
+    min-height: 300px;
+    width: 100%;
 }
+
+.operations-table {
+    flex: 1;
+    max-width: 55%; /* уменьшил максимальную ширину таблицы */
+}
+
+.operations-table table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    font-size: 14px; /* уменьшил размер шрифта в таблице */
+}
+
+.operations-table th,
+.operations-table td {
+    padding: 8px 12px; /* уменьшил отступы в ячейках */
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.operations-table th {
+    background-color: #f4f4f4;
+    font-weight: 600;
+    color: #333;
+    font-size: 13px; /* уменьшил размер шрифта в заголовках */
+}
+
+.operations-table th:first-child {
+    width: 60%; /* увеличил ширину первого столбца */
+}
+
+.operations-table th:nth-child(2),
+.operations-table th:nth-child(3) {
+    width: 20%; /* уменьшил ширину числовых столбцов */
+    text-align: center; /* центрировал числовые значения */
+}
+
+.operations-table td:nth-child(2),
+.operations-table td:nth-child(3) {
+    text-align: center; /* центрировал числовые значения */
+}
+
+.operations-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+.operations-table tr:last-child td {
+    border-bottom: none;
+}
+
