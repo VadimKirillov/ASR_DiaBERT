@@ -20,6 +20,8 @@ import requests
 from starlette.middleware.cors import CORSMiddleware
 from docx.shared import Inches
 from starlette.websockets import WebSocketState, WebSocketDisconnect
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+
 import io
 
 SERVER_URL = "https://d776-193-41-143-66.ngrok-free.app"
@@ -34,6 +36,7 @@ class TableRow(BaseModel):
 class DocumentData(BaseModel):
     text: str
     tableData: List[TableRow]
+
 
 # Настройка папок для хранения файлов
 UPLOAD_DIR = "uploads"
