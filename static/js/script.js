@@ -371,10 +371,14 @@ function addNewRow() {
         <td contenteditable="true">Новая операция</td>
         <td contenteditable="true" class="time-cell">00:00</td>
         <td contenteditable="true" class="time-cell">00:00</td>
-        <td><button class="delete-row">-</button></td>
+        <td>
+            <button class="delete-row">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
     `;
     tbody.appendChild(newRow);
-    attachDeleteHandlers();
+    attachDeleteHandlers(); // Привязываем обработчики событий к новой кнопке удаления
 }
 
 function debounce(func, wait) {

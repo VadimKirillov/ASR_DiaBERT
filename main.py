@@ -41,14 +41,17 @@ SERVER_URL = "https://d776-193-41-143-66.ngrok-free.app"
 
 app = FastAPI()
 
+
 class TableRow(BaseModel):
     operation: str
     startTime: str
     endTime: str
 
+
 class DocumentData(BaseModel):
     text: str
     tableData: List[TableRow]
+
 
 # Модель для валидации входных данных
 class AudioText(BaseModel):
@@ -60,8 +63,10 @@ class TimeAction(BaseModel):
     end: str
     action: str
 
+
 class AudioAnalysisResponse(BaseModel):
     events: List[TimeAction]
+
 
 # Настройка папок для хранения файлов
 UPLOAD_DIR = "uploads"
@@ -226,8 +231,22 @@ async def generate_docx(data: DocumentData):
         # Создаем новый документ
         doc = Document()
 
-        # Добавляем текст из редактируемого div
-        doc.add_paragraph(data.text)
+        # Добавляем заголовок
+        doc.add_heading("Распознавание текста получено при помощи сервиса DiaBert", level=1)
+
+        # Подзаголовок: Распознанный текст
+        doc.add_heading("Распознанный текст", level=2)
+
+        # Проверяем, есть ли текст
+        if data.text.strip():
+            # Если текст есть, добавляем его
+            doc.add_paragraph(data.text)
+        else:
+            # Если текста нет, выводим сообщение
+            doc.add_paragraph("Текст не был распознан.")
+
+        # Подзаголовок: Распознанный текст
+        doc.add_heading("Таблица с расписанием операции и временем:", level=2)
 
         # Добавляем таблицу
         table = doc.add_table(rows=1, cols=3)

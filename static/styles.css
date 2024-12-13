@@ -1,43 +1,70 @@
+/* Подключение шрифта Roboto */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
     margin: 0;
-    padding: 20px;
+    padding: 0;
+    height: 100vh; /* Высота на весь экран */
+    display: flex; /* Для центрирования контента */
+    justify-content: center; /* Горизонтальное центрирование */
+    align-items: center; /* Вертикальное центрирование */
 }
 
+/* Контейнер */
 .container {
     max-width: 800px;
-    margin: 0 auto;
+    width: 100%;
     background-color: white;
     padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
+/* Заголовки */
 h2 {
     text-align: center;
     color: #333;
     margin-bottom: 40px;
+    font-weight: 700;
 }
 
+/* Центрирование главной кнопки */
 .main-button {
-    display: block;
-    width: 200px;
-    margin: 40px auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: auto;
+    margin: 0 auto 40px; /* Центрирование кнопки */
     padding: 15px 30px;
-    background-color: #4CAF50;
+    background-color: #ff7e5f;
     color: white;
     border: none;
-    border-radius: 5px;
-    font-size: 16px;
+    border-radius: 50px;
+    font-size: 18px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(255,126,95,0.3);
+}
+
+/* Обертка для центрирования кнопки */
+.center-button-wrapper {
+    display: flex;
+    justify-content: center; /* Центрирование по горизонтали */
+    margin-bottom: 40px; /* Отступ снизу */
+}
+
+.main-button i {
+    font-size: 20px;
 }
 
 .main-button:hover {
-    background-color: #45a049;
+    background-color: #feb47b;
+    box-shadow: 0 8px 20px rgba(255,126,95,0.5);
+    transform: translateY(-3px);
 }
 
+/* Переключатели режима */
 .mode-row {
     display: flex;
     align-items: center;
@@ -51,6 +78,7 @@ h2 {
     align-items: center;
 }
 
+/* Стили переключателя */
 .toggle {
     position: relative;
     display: inline-block;
@@ -96,6 +124,7 @@ input:checked + .slider:before {
     transform: translateX(26px);
 }
 
+/* Форма загрузки */
 #uploadForm {
     text-align: center;
     margin: 30px 0;
@@ -104,108 +133,130 @@ input:checked + .slider:before {
 #uploadForm button {
     margin-top: 15px;
     padding: 10px 20px;
-    background-color: #2196F3;
+    background-color: #00c6ff;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 50px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(0,198,255,0.3);
 }
 
 #uploadForm button:hover {
-    background-color: #1976D2;
+    background-color: #0072ff;
+    box-shadow: 0 8px 20px rgba(0,198,255,0.5);
+    transform: translateY(-3px);
 }
 
+/* Кнопка скачивания DOCX */
 #downloadDocxButton {
     display: block;
     margin: 20px auto;
     padding: 10px 20px;
-    background-color: #673AB7;
+    background-color: #7f00ff;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 50px;
     font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(127,0,255,0.3);
 }
 
 #downloadDocxButton:hover {
-    background-color: #5E35B1;
+    background-color: #e100ff;
+    box-shadow: 0 8px 20px rgba(127,0,255,0.5);
+    transform: translateY(-3px);
 }
 
+/* Кнопка очистки текста */
 #clearTextButton {
     display: block;
     margin: 20px auto;
     padding: 10px 20px;
-    background-color: #ff4444;
+    background-color: #ff4b2b;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 50px;
     font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(255,75,43,0.3);
 }
 
 #clearTextButton:hover {
-    background-color: #cc0000
+    background-color: #ff416c;
+    box-shadow: 0 8px 20px rgba(255,75,43,0.5);
+    transform: translateY(-3px);
 }
 
+/* Кнопка создания расписания */
 #makeTimeTableButton {
     display: block;
     margin: 20px auto;
     padding: 10px 20px;
-    background-color: #4CAF50;
+    background-color: #00b09b;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 50px;
     font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(0,176,155,0.3);
 }
 
 #makeTimeTableButton:hover {
-    background-color: #45a049;
+    background-color: #96c93d;
+    box-shadow: 0 8px 20px rgba(0,176,155,0.5);
+    transform: translateY(-3px);
 }
+
+/* Статус */
 .status {
     text-align: center;
     margin: 20px 0;
     color: #666;
 }
 
+/* Обертка контента */
 .content-wrapper {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    gap: 30px; /* увеличил отступ между элементами */
+    gap: 30px;
     margin: 20px 0;
 }
 
+/* Результаты распознавания */
 .recognition-results {
-    flex: 1; /* увеличил пропорцию для текстового блока */
-    max-width: 40%; /* увеличил максимальную ширину для текста */
+    flex: 1;
+    max-width: 40%;
 }
 
 #output {
     margin: 0;
     padding: 15px;
     border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #f9f9f9;
+    border-radius: 10px;
+    background-color: #fff;
     min-height: 300px;
     width: 100%;
-    outline: none; /* Убираем стандартную обводку при фокусе */
-    cursor: text; /* Показываем курсор ввода текста */
+    outline: none;
+    cursor: text;
+    transition: all 0.3s;
 }
 
 #output:focus {
-    border-color: #4CAF50;
-    background-color: #fff;
+    border-color: #00c6ff;
+    background-color: #f0f8ff;
+    box-shadow: 0 0 5px rgba(0,198,255,0.5);
 }
 
+/* Таблица операций */
 .operations-table {
     position: relative;
     flex: 1;
-    max-width: 55%; /* уменьшил максимальную ширину таблицы */
+    max-width: 55%;
     overflow-x: auto;
 }
 
@@ -215,113 +266,125 @@ input:checked + .slider:before {
     border-collapse: collapse;
     background-color: #fff;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    font-size: 14px; /* уменьшил размер шрифта в таблице */
+    border-radius: 10px;
+    font-size: 14px;
 }
 
 .operations-table th,
 .operations-table td {
-    padding: 8px 12px;
+    padding: 10px 15px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
-    word-wrap: break-word; /* перенос длинных слов */
+    border-bottom: 1px solid #eee;
+    word-wrap: break-word;
     overflow-wrap: break-word;
-    white-space: normal; /* разрешаем перенос строк */
+    white-space: normal;
 }
 
 .operations-table th {
-    background-color: #f4f4f4;
+    background-color: #f9f9f9;
     font-weight: 600;
     color: #333;
-    font-size: 13px; /* уменьшил размер шрифта в заголовках */
+    font-size: 14px;
 }
 
 .operations-table th:first-child {
-    width: 60%; /* увеличил ширину первого столбца */
+    width: 60%;
 }
 
 .operations-table th:nth-child(2),
 .operations-table th:nth-child(3) {
-    width: 20%; /* уменьшил ширину числовых столбцов */
-    text-align: center; /* центрировал числовые значения */
+    width: 20%;
+    text-align: center;
 }
 
 .operations-table td:nth-child(2),
 .operations-table td:nth-child(3) {
-    text-align: center; /* центрировал числовые значения */
+    text-align: center;
 }
 
 .operations-table tr:hover {
-    background-color: #f5f5f5;
+    background-color: #f1f1f1;
 }
 
 .operations-table th:last-child,
 .operations-table td:last-child {
-    width: 30px;
+    width: 40px;
     text-align: center;
     padding: 5px;
 }
 
-css[contenteditable="true"] {
+/* Редактируемые ячейки */
+[contenteditable="true"] {
     outline: none;
     padding: 5px;
     border: 1px solid transparent;
+    transition: all 0.3s;
 }
 
 [contenteditable="true"]:hover {
     border: 1px solid #ddd;
-    border-radius: 3px;
+    border-radius: 5px;
 }
 
 [contenteditable="true"]:focus {
-    border: 1px solid #4CAF50;
-    border-radius: 3px;
-    background-color: #fff;
+    border: 1px solid #00c6ff;
+    border-radius: 5px;
+    background-color: #f0f8ff;
+    box-shadow: 0 0 5px rgba(0,198,255,0.5);
 }
 
+/* Неверные ячейки времени */
 .time-cell.invalid {
-    border: 1px solid #ff4444;
+    border: 1px solid #ff4b2b;
     background-color: #ffe6e6;
 }
 
+/* Кнопка добавления строки */
 .add-row {
     position: absolute;
     bottom: 10px;
     right: 10px;
-    width: 30px;
-    height: 30px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    background-color: #4CAF50;
+    background-color: #00b09b;
     color: white;
     border: none;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 30px;
     line-height: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 5px 15px rgba(0,176,155,0.3);
+    transition: all 0.3s;
 }
 
 .add-row:hover {
-    background-color: #45a049;
+    background-color: #96c93d;
+    box-shadow: 0 8px 20px rgba(0,176,155,0.5);
+    transform: translateY(-3px);
 }
 
+/* Кнопка удаления строки */
 .delete-row {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    background-color: #ff4444;
+    background-color: #ff4b2b;
     color: white;
     border: none;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
+    transition: all 0.3s;
 }
 
 .delete-row:hover {
-    background-color: #cc0000;
+    background-color: #ff416c;
+    box-shadow: 0 0 5px rgba(255,75,43,0.5);
 }

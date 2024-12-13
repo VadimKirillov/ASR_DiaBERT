@@ -8,64 +8,82 @@
     <title>Speech Recognition</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="static/styles.css">
+    <!-- Подключение Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+
+    <!-- Подключение Font Awesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
 
 
 </head>
 <body>
     <div class="container">
-        <h2>Аудио Тайм-трекер</h2>
-        <button id="startButton" class="main-button">Начать запись</button>
-
-            <div class="mode-row">
-                <span>Режим начала записи по командам - "Старт", "Начать запись", "Зарегистрировать время"</span>
-                <div class="toggle-wrapper">
-                    <label class="toggle">
-                        <input type="checkbox" id="timeTrackerToggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
-        <div class="mode-row">
-                <span>Остановка записи по командам - "Стоп" и "Завершить"</span>
-            </div>
-
-
-        <form id="uploadForm">
-            <input type="file" id="audioFile" accept="audio/*">
-            <button type="submit">Обработать аудиофайл</button>
-        </form>
-
-<div class="content-wrapper">
-    <div class="recognition-results">
-        <div id="output" contenteditable="true"></div>
+    <h2>Аудио Тайм-трекер</h2>
+    <div class="center-button-wrapper">
+        <button id="startButton" class="main-button">
+            <i class="fas fa-play"></i> Начать запись
+        </button>
     </div>
-    <div class="operations-table">
-        <table>
-            <thead>
-                <tr>
-                    <th>Операция</th>
-                    <th>Время начала</th>
-                    <th>Время завершения</th>
-                    <th></th><!-- Добавлен столбец для кнопки удаления -->
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td contenteditable="true">Тестовая операция</td>
-                    <td contenteditable="true" class="time-cell">09:00</td>
-                    <td contenteditable="true" class="time-cell">10:30</td>
-                    <td><button class="delete-row">-</button></td>
-                </tr>
-            </tbody>
-        </table>
-        <button class="add-row">+</button>
+
+    <div class="mode-row">
+        <span>Режим начала записи по командам - "Старт", "Начать запись", "Зарегистрировать время"</span>
+        <div class="toggle-wrapper">
+            <label class="toggle">
+                <input type="checkbox" id="timeTrackerToggle">
+                <span class="slider"></span>
+            </label>
+        </div>
     </div>
+    <div class="mode-row">
+        <span>Остановка записи по командам - "Стоп" и "Завершить"</span>
+    </div>
+
+    <form id="uploadForm">
+        <input type="file" id="audioFile" accept="audio/*">
+        <button type="submit">
+            <i class="fas fa-file-audio"></i> Обработать аудиофайл
+        </button>
+    </form>
+
+    <div class="content-wrapper">
+        <div class="recognition-results">
+            <div id="output" contenteditable="true"></div>
+        </div>
+        <div class="operations-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Операция</th>
+                        <th>Время начала</th>
+                        <th>Время завершения</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td contenteditable="true">Тестовая операция</td>
+                        <td contenteditable="true" class="time-cell">09:00</td>
+                        <td contenteditable="true" class="time-cell">10:30</td>
+                        <td><button class="delete-row"><i class="fas fa-trash"></i></button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="add-row"><i class="fas fa-plus"></i></button>
+        </div>
+    </div>
+    <button id="clearTextButton" style="display: inline;">
+        <i class="fas fa-eraser"></i> Отчистить текст
+    </button>
+    <button id="makeTimeTableButton" style="display: inline;">
+        <i class="fas fa-calendar-alt"></i> Создать расписание
+    </button>
+    <button id="downloadDocxButton" style="display: inline;">
+        <i class="fas fa-download"></i> Скачать DOCX
+    </button>
 </div>
-        <button id="clearTextButton" style="display: inline;">Отчистить текст</button>
-        <button id="makeTimeTableButton" style="display: inline;">Создать расписание</button>
-        <button id="downloadDocxButton" style="display: inline;">Скачать DOCX</button>
 
-    </div>
+    <!-- Подключение Font Awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/js/all.min.js"></script>
     <script src="static/js/script.js"></script>
 </body>
 </html>
