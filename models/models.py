@@ -1,3 +1,6 @@
+from pydantic import BaseModel
+from typing import List
+
 class TableRow(BaseModel):
     operation: str
     startTime: str
