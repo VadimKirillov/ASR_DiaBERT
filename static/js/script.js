@@ -29,17 +29,24 @@ if ('webkitSpeechRecognition' in window) {
     recordingRecognition.lang = 'ru-RU';
 
     // Обработчик результатов распознавания речи
-recordingRecognition.onresult = function(event) {
+    recordingRecognition.onresult = function(event) {
     let finalTranscript = '';
     let interimTranscript = '';
 
     for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
+        const transcript = event.results[i][0].transcript.toLowerCase();
+
         if (event.results[i].isFinal) {
             finalTranscript += transcript;
         } else {
             interimTranscript += transcript;
         }
+
+        // Проверяем на команды остановки
+        if (transcript.includes('стоп') || transcript.includes('завершить')) {
+             stopRecording();
+        }
+
     }
 
     // Добавление распознанного текста в элемент output

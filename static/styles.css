@@ -206,10 +206,12 @@ input:checked + .slider:before {
     position: relative;
     flex: 1;
     max-width: 55%; /* уменьшил максимальную ширину таблицы */
+    overflow-x: auto;
 }
 
 .operations-table table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     background-color: #fff;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -219,9 +221,12 @@ input:checked + .slider:before {
 
 .operations-table th,
 .operations-table td {
-    padding: 8px 12px; /* уменьшил отступы в ячейках */
+    padding: 8px 12px;
     text-align: left;
     border-bottom: 1px solid #ddd;
+    word-wrap: break-word; /* перенос длинных слов */
+    overflow-wrap: break-word;
+    white-space: normal; /* разрешаем перенос строк */
 }
 
 .operations-table th {
