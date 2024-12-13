@@ -344,7 +344,11 @@ function addNewOperations(operations) {
             <td contenteditable="true">${operation.action || ''}</td>
             <td contenteditable="true" class="time-cell">${operation.start || ''}</td>
             <td contenteditable="true" class="time-cell">${operation.end || ''}</td>
-            <td><button class="delete-row">-</button></td>
+            <td>
+                <button class="delete-row">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
         `;
         tbody.appendChild(row);
     });
