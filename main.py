@@ -13,6 +13,7 @@ from typing import List
 from fastapi import Query
 from fastapi import Request
 import shutil
+import time
 import os
 from tempfile import NamedTemporaryFile
 from fastapi.background import BackgroundTasks
@@ -22,7 +23,7 @@ from docx.shared import Inches
 from starlette.websockets import WebSocketState, WebSocketDisconnect
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 import httpx
-
+from fastapi import status
 import io
 
 SERVER_URL = "https://d776-193-41-143-66.ngrok-free.app"
@@ -38,6 +39,18 @@ class DocumentData(BaseModel):
     text: str
     tableData: List[TableRow]
 
+# Модель для валидации входных данных
+class AudioText(BaseModel):
+    text: str
+
+
+class TimeAction(BaseModel):
+    start: str
+    end: str
+    action: str
+
+class AudioAnalysisResponse(BaseModel):
+    events: List[TimeAction]
 
 # Настройка папок для хранения файлов
 UPLOAD_DIR = "uploads"
@@ -147,7 +160,53 @@ async def upload_file(file: UploadFile = File(...)):
     finally:
         # Удаляем временный файл
         if file_location and os.path.exists(file_location):
+            time.sleep(1)
             os.remove(file_location)
+
+
+@app.post("/analyze_audio", response_model=AudioAnalysisResponse)
+async def analyze_audio(audio_data: AudioText):
+    try:
+        external_api_url = f"{SERVER_URL}/analyze_audio"
+
+        # Отправляем запрос к внешнему API
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                external_api_url,
+                json=audio_data.dict()  # Преобразуем входные данные в JSON
+            )
+
+            # Проверяем статус ответа
+            response.raise_for_status()
+
+            # Получаем данные из ответа
+            data = response.json()
+
+            print(data)
+
+            # Форматируем ответ в соответствии с моделью AudioAnalysisResponse
+            formatted_events = [
+                TimeAction(
+                    start=event["start"],
+                    end=event["end"],
+                    action=event["action"]
+                )
+                for event in data["events"]
+            ]
+            print(formatted_events)
+
+            return AudioAnalysisResponse(events=formatted_events).dict()
+
+    except httpx.HTTPError as e:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Error communicating with external API: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(e)}"
+        )
 
 
 @app.post("/generate-docx")
