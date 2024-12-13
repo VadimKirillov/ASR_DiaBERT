@@ -11,7 +11,8 @@ let recognition;
     let isTimeTrackerEnabled = false;
     let commandRecognition, recordingRecognition;
     let isRecording = false;
-    let ws = new WebSocket(`ws://${window.location.hostname}:8000/ws`)
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
     // Speech recognition setup
 if ('webkitSpeechRecognition' in window) {

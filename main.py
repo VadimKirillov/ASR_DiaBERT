@@ -17,6 +17,7 @@ import os
 from tempfile import NamedTemporaryFile
 from fastapi.background import BackgroundTasks
 import requests
+from starlette.middleware.cors import CORSMiddleware
 from docx.shared import Inches
 import io
 
@@ -46,6 +47,14 @@ app.mount("/static", StaticFiles(directory=static_path), name="static")
 templates_path = os.path.join(os.path.dirname(__file__), "templates")
 templates = Jinja2Templates(directory=templates_path)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # В продакшене лучше указать конкретные домены
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/", response_class=HTMLResponse)
 async def get():
@@ -55,17 +64,24 @@ async def get():
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
     try:
+        await websocket.accept()
         while True:
-            data = await websocket.receive_text()
-            await websocket.send_text(data)
-    except WebSocketDisconnect:
-        print("Client disconnected")
-    except Exception as e:
-        print(f"Error: {e}")
+            try:
+                data = await websocket.receive_text()
+                await websocket.send_text(data)
+            except WebSocketDisconnect:
+                print("Client disconnected")
+                break
+            except Exception as e:
+                print(f"Error in websocket communication: {e}")
+                break
     finally:
-        await websocket.close()
+        try:
+            await websocket.close()
+        except:
+            pass
+
 
 
 # Эндпоинт для загрузки файла
