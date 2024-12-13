@@ -40,11 +40,13 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            # Получаем текст от клиента
             data = await websocket.receive_text()
-            # Отправляем его обратно (можно добавить дополнительную обработку)
             await websocket.send_text(data)
-    except:
+    except WebSocketDisconnect:
+        print("Client disconnected")
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
         await websocket.close()
 
 

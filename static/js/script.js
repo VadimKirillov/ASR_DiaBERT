@@ -4,118 +4,165 @@ let recognition;
     const statusText = document.getElementById('statusText');
     const audioFile = document.getElementById('audioFile');
     const uploadForm = document.getElementById('uploadForm');
-    const downloadPdfButton = document.getElementById('downloadPdfButton'); // Кнопка загрузки PDF
-    let ws = new WebSocket(`ws://${window.location.host}/ws`);
+    const downloadDocxButton = document.getElementById('downloadDocxButton'); // Кнопка загрузки PDF
+    const timeTrackerToggle = document.getElementById('timeTrackerToggle');
+    let isTimeTrackerEnabled = false;
+    let commandRecognition, recordingRecognition;
+    let isRecording = false;
+    let ws = new WebSocket(`ws://${window.location.hostname}:8000/ws`)
 
     // Speech recognition setup
-    if ('webkitSpeechRecognition' in window) {
-        recognition = new webkitSpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'ru-RU';
+if ('webkitSpeechRecognition' in window) {
+    commandRecognition = new webkitSpeechRecognition();
+    recordingRecognition = new webkitSpeechRecognition();
 
-        recognition.onresult = function(event) {
-            let interimTranscript = '';
-            let finalTranscript = '';
+    // Настройка распознавания команд
+    commandRecognition.continuous = false;
+    commandRecognition.interimResults = false;
+    commandRecognition.lang = 'ru-RU';
 
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                const transcript = event.results[i][0].transcript;
-                if (event.results[i].isFinal) {
-                    finalTranscript += transcript;
-                    ws.send(transcript);
-                } else {
-                    interimTranscript += transcript;
-                }
-            }
+    // Настройка распознавания речи для записи
+    recordingRecognition.continuous = true;
+    recordingRecognition.interimResults = true;
+    recordingRecognition.lang = 'ru-RU';
 
-            output.innerHTML = finalTranscript + '<i>' + interimTranscript + '</i>';
-        };
+    // Обработчик результатов распознавания речи
+recordingRecognition.onresult = function(event) {
+    let finalTranscript = '';
+    let interimTranscript = '';
 
-        recognition.onerror = function(event) {
-            console.error('Speech recognition error:', event.error);
-        };
-
-        let isRecording = false;
-
-        startButton.onclick = function() {
-            if (!isRecording) {
-                recognition.start();
-                startButton.textContent = 'Stop recording';
-                startButton.classList.add('recording');
-                isRecording = true;
-                statusText.textContent = 'Recording in progress...';
-            } else {
-                recognition.stop();
-                startButton.textContent = 'Start recording';
-                startButton.classList.remove('recording');
-                isRecording = false;
-                statusText.textContent = 'Recording stopped.';
-
-                // Показываем кнопку загрузки PDF после остановки записи
-                showDownloadButton();
-            }
-        };
-    } else {
-        output.innerHTML = 'Your browser does not support speech recognition.';
-        startButton.disabled = true;
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+        } else {
+            interimTranscript += transcript;
+        }
     }
 
-    // WebSocket handlers
-    ws.onopen = function() {
-        console.log('WebSocket connected');
+    // Добавление распознанного текста в элемент output
+    if (finalTranscript !== '') {
+        const outputElement = document.getElementById('output');
+        // Если хотите добавить новый текст к существующему
+        outputElement.textContent += (outputElement.textContent ? ' ' : '') + finalTranscript;
+
+        // Или если хотите заменить текст полностью:
+        // outputElement.textContent = finalTranscript;
+    }
     };
 
-    ws.onmessage = function(event) {
-        console.log('Received from server:', event.data);
-    };
+    // Обработчик переключателя
+    timeTrackerToggle.addEventListener('change', function() {
+        isTimeTrackerEnabled = this.checked;
+        console.log('Time tracker mode:', isTimeTrackerEnabled ? 'enabled' : 'disabled');
 
-    ws.onerror = function(event) {
-        console.error('WebSocket error:', event);
-    };
-
-    ws.onclose = function() {
-        console.log('WebSocket disconnected');
-    };
-
-    // Upload audio file
-    uploadForm.onsubmit = async (e) => {
-        e.preventDefault();
-        const file = audioFile.files[0];
-        if (!file) {
-            alert('Please select an audio file to upload.');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            const response = await fetch('/uploadfile/', {
-                method: 'POST',
-                body: formData
-            });
-            const result = await response.json();
-
-            if (result.status === 'Файл обработан успешно') {
-                output.innerHTML = `<strong>Result:</strong> ${JSON.stringify(result.data)}`;
-            } else {
-                output.innerHTML = `<strong>Error:</strong> ${result.error}`;
+        if (isTimeTrackerEnabled) {
+            try {
+                commandRecognition.start();
+                console.log('Command recognition started');
+            } catch (e) {
+                console.error('Error starting command recognition:', e);
             }
+        } else {
+            try {
+                commandRecognition.stop();
+                if (isRecording) {
+                    stopRecording();
+                }
+            } catch (e) {
+                console.error('Error stopping recognition:', e);
+            }
+        }
+    });
 
-            // Показываем кнопку загрузки PDF после обработки
-            showDownloadButton();
-        } catch (error) {
-            console.error('Upload error:', error);
-            output.innerHTML = '<strong>Error:</strong> Unable to upload file.';
+    // Обработчик окончания сессии распознавания
+    commandRecognition.onend = function() {
+        console.log('Command recognition ended');
+        if (isTimeTrackerEnabled && !isRecording) {
+            try {
+                commandRecognition.start();
+            } catch (e) {
+                console.error('Error restarting command recognition:', e);
+            }
         }
     };
+
+    commandRecognition.onresult = function(event) {
+        const command = event.results[0][0].transcript.toLowerCase();
+        console.log('Команда:', command);
+
+        if (!isRecording && (command.includes('начать') || command.includes('старт'))) {
+            startRecording();
+        } else if (isRecording && command.includes('стоп')) {
+            stopRecording();
+        }
+    };
+
+    function startRecording() {
+        isRecording = true;
+        try {
+            if (isTimeTrackerEnabled) {
+                commandRecognition.stop();
+            }
+            recordingRecognition.start();
+            startButton.textContent = 'Stop recording';
+            startButton.classList.add('recording');
+            startButton.style.backgroundColor = 'red';
+            statusText.textContent = 'Recording in progress...';
+        } catch (e) {
+            console.error('Error starting recording:', e);
+        }
+    }
+
+    function stopRecording() {
+        isRecording = false;
+        try {
+            recordingRecognition.stop();
+            if (isTimeTrackerEnabled) {
+                commandRecognition.start();
+            }
+            startButton.textContent = 'Start recording';
+            startButton.classList.remove('recording');
+            startButton.style.backgroundColor = '';
+            statusText.textContent = 'Recording stopped.';
+            showDownloadButton();
+        } catch (e) {
+            console.error('Error stopping recording:', e);
+        }
+    }
+
+    // Обработчики ошибок
+    commandRecognition.onerror = function(event) {
+        console.error('Command recognition error:', event.error);
+    };
+
+    recordingRecognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+    };
+
+    // Обработчик кнопки
+    startButton.onclick = function() {
+        if (!isRecording) {
+            startRecording();
+        } else {
+            stopRecording();
+        }
+    };
+} else {
+    startButton.disabled = true;
+}
+
+    // Устанавливаем начальное состояние переключателя
+    isTimeTrackerEnabled = timeTrackerToggle.checked;
+    if (isTimeTrackerEnabled) {
+        commandRecognition.start();
+    }
 
     // Показать кнопку загрузки DOCX
 function showDownloadButton() {
     downloadDocxButton.style.display = 'inline-block';
 }
 
-// Генерация и скачивание DOCX
 downloadDocxButton.onclick = async () => {
     const text = output.textContent.trim(); // Берем содержимое из output
     if (!text) {
@@ -124,6 +171,7 @@ downloadDocxButton.onclick = async () => {
     }
 
     try {
+        // Исправлен синтаксис шаблонной строки
         const response = await fetch(`/generate-docx?text=${encodeURIComponent(text)}`, {
             method: 'GET'
         });
@@ -136,10 +184,14 @@ downloadDocxButton.onclick = async () => {
             const link = document.createElement('a');
             link.href = url;
             link.download = 'result.docx';
+            document.body.appendChild(link); // Добавляем ссылку в DOM
             link.click();
+            document.body.removeChild(link); // Удаляем ссылку из DOM
 
-            // Очищаем URL после использования
-            window.URL.revokeObjectURL(url);
+            // Очищаем URL после небольшой задержки
+            setTimeout(() => {
+                window.URL.revokeObjectURL(url);
+            }, 100);
         } else {
             alert('Ошибка при генерации документа.');
         }

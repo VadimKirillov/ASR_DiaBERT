@@ -13,12 +13,26 @@
 <body>
     <div class="container">
         <h2>Аудио Тайм-трекер</h2>
-        <button id="startButton">Начать запись</button>
+        <button id="startButton" class="main-button">Начать запись</button>
+
+            <div class="mode-row">
+                <span>Режим начала записи по командам - Старт, Начать запись, Зарегистрировать время</span>
+                <div class="toggle-wrapper">
+                    <label class="toggle">
+                        <input type="checkbox" id="timeTrackerToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
         <form id="uploadForm">
             <input type="file" id="audioFile" accept="audio/*">
             <button type="submit">Загрузить аудиофайл</button>
         </form>
-        <div id="output"></div>
+        <div class="recognition-results">
+            <div id="output"></div>
+        </div>
+
         <div class="status" id="statusText"></div>
         <button id="downloadDocxButton" style="display: none;">Скачать DOCX</button>
 
