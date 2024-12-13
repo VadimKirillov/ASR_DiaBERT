@@ -1,30 +1,41 @@
-from fastapi import FastAPI, File, UploadFile, WebSocket
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-from fastapi.exceptions import HTTPException
-from fastapi.responses import FileResponse
-from fpdf import FPDF
-import logging
-from datetime import datetime
-from docx import Document
-from pydantic import BaseModel
-from typing import List
-from fastapi import Query
-from fastapi import Request
+# Стандартные библиотеки Python
+import io
+import os
 import shutil
 import time
-import os
+from datetime import datetime
 from tempfile import NamedTemporaryFile
+from typing import List
+
+# FastAPI и Starlette
+from fastapi import (
+    FastAPI,
+    File,
+    Query,
+    Request,
+    UploadFile,
+    WebSocket,
+    status,
+)
 from fastapi.background import BackgroundTasks
-import requests
-from starlette.middleware.cors import CORSMiddleware
-from docx.shared import Inches
-from starlette.websockets import WebSocketState, WebSocketDisconnect
+from fastapi.exceptions import HTTPException
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from starlette.middleware.cors import CORSMiddleware
+from starlette.websockets import WebSocketDisconnect, WebSocketState
+
+# Сторонние библиотеки
 import httpx
-from fastapi import status
-import io
+import requests
+from docx import Document
+from docx.shared import Inches
+from fpdf import FPDF
+from pydantic import BaseModel
+
+# Логирование
+import logging
 
 SERVER_URL = "https://d776-193-41-143-66.ngrok-free.app"
 

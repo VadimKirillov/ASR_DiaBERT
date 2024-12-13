@@ -1,19 +1,26 @@
 let recognition;
-    const startButton = document.getElementById('startButton');
-    const output = document.getElementById('output');
-    const audioFile = document.getElementById('audioFile');
-    const uploadForm = document.getElementById('uploadForm');
-    const downloadDocxButton = document.getElementById('downloadDocxButton');
-    const makeTimeTableButton = document.getElementById('makeTimeTableButton');
-    const clearTextButton = document.getElementById('clearTextButton');
-    const timeTrackerToggle = document.getElementById('timeTrackerToggle');
-    let isTimeTrackerEnabled = false;
-    let commandRecognition, recordingRecognition;
-    let isRecording = false;
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
+const startButton = document.getElementById('startButton');
+const output = document.getElementById('output');
+const audioFile = document.getElementById('audioFile');
+const uploadForm = document.getElementById('uploadForm');
+const downloadDocxButton = document.getElementById('downloadDocxButton');
+const makeTimeTableButton = document.getElementById('makeTimeTableButton');
+const clearTextButton = document.getElementById('clearTextButton');
+const timeTrackerToggle = document.getElementById('timeTrackerToggle');
+let isTimeTrackerEnabled = false;
+let commandRecognition, recordingRecognition;
+let isRecording = false;
+const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
-    // Speech recognition setup
+function cleanText(text) {
+    return text
+        .replace(/[nrt]/g, ' ') // заменяем переносы строк и табуляции на пробелы
+        .replace(/s+/g, ' ')      // убираем множественные пробелы
+        .trim();                   // убираем пробелы в начале и конце
+}
+
+ // Speech recognition setup
 if ('webkitSpeechRecognition' in window) {
     commandRecognition = new webkitSpeechRecognition();
     recordingRecognition = new webkitSpeechRecognition();
@@ -213,39 +220,6 @@ function formatTimeCell(cell) {
     }
 }
 
-//document.addEventListener('DOMContentLoaded', function() {
-//    const addButton = document.querySelector('.add-row');
-//    const tbody = document.querySelector('.operations-table tbody');
-//
-//    // Функция для создания новой строки
-//    function createNewRow() {
-//        const tr = document.createElement('tr');
-//        tr.innerHTML = `
-//            <td contenteditable="true"></td>
-//            <td contenteditable="true" class="time-cell"></td>
-//            <td contenteditable="true" class="time-cell"></td>
-//            <td><button class="delete-row">-</button></td>
-//        `;
-//        return tr;
-//    }
-//
-//    // Обработчик добавления новой строки
-//    addButton.addEventListener('click', function() {
-//        const newRow = createNewRow();
-//        tbody.appendChild(newRow);
-//    });
-//
-//    // Обработчик удаления строки (делегирование событий)
-//    tbody.addEventListener('click', function(e) {
-//        if (e.target.classList.contains('delete-row')) {
-//            const row = e.target.closest('tr');
-//            if (tbody.children.length > 1) { // Проверка, чтобы всегда оставалась хотя бы одна строка
-//                row.remove();
-//            }
-//        }
-//    });
-//});
-
 document.getElementById('uploadForm').addEventListener('submit', async function(e) {
     e.preventDefault(); // Предотвращаем стандартную отправку формы
 
@@ -335,7 +309,8 @@ document.getElementById('downloadDocxButton').addEventListener('click', async fu
 
 async function sendTextForAnalysis() {
     const outputText = document.getElementById('output').innerText;
-
+    cleanedText = cleanText(outputText)
+    console.log(cleanedText);
     try {
         const response = await fetch(`${window.location.protocol}//${window.location.host}/analyze_audio`, {
             method: 'POST',
@@ -343,7 +318,7 @@ async function sendTextForAnalysis() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                text: outputText
+                text: cleanedText
             })
         });
 
